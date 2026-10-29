@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Las aventuras de Lía</title>
+<style>
+:root{--ink:#283044;--purple:#65418f;--pink:#f2c75c;--cream:#fff8e8;--green:#2f7959}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:linear-gradient(#eaf5ff,#fff8e8);color:var(--ink)}
+header{text-align:center;padding:28px 16px;background:#65418f;color:white;border-bottom:7px solid #f2c75c}
+header .brand{font-size:13px;letter-spacing:2px;text-transform:uppercase}h1{margin:8px 0;font-size:clamp(28px,7vw,42px)}header p{margin:0}
+main{max-width:900px;margin:auto;padding:18px}.books{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.card,.panel{background:white;border:2px solid #e5d9f2;border-radius:20px;padding:18px;box-shadow:0 5px 0 #d9c9e8}
+.art{text-align:center;font-size:55px;background:#f5efff;border-radius:15px;padding:12px;margin-bottom:12px}
+h2{margin-top:0}.card h3{margin:8px 0}.card p{line-height:1.5}
+button{border:0;border-radius:12px;padding:12px 15px;font-size:16px;font-weight:bold;cursor:pointer;background:#f2c75c;color:#283044;margin:4px}
+button:active{transform:translateY(2px)}button.primary{background:#65418f;color:white}.back{background:#e8e0f2}
+.hidden{display:none!important}.pill{display:inline-block;background:#f2c75c;padding:6px 10px;border-radius:99px;font-size:12px;font-weight:bold}
+#gameContent{line-height:1.6;font-size:17px}.answers{display:grid;gap:9px;margin:14px 0}.answers button{background:#f5efff;border:2px solid #d9c9e8;text-align:left}
+.feedback{font-weight:bold;min-height:28px;margin:10px 0}.good{color:#187342}.bad{color:#b23c32}
+.gridmaze{display:grid;grid-template-columns:repeat(5,minmax(40px,1fr));gap:5px;max-width:360px;margin:16px auto}.gridmaze button{padding:0;aspect-ratio:1;font-size:23px;background:#f4e9d5}.gridmaze button.wall{background:#65418f;color:white}.gridmaze button.path{background:#c9f0d4}
+footer{text-align:center;padding:24px;font-size:13px}
+</style>
+</head>
+<body>
+<header><div class="brand">Un mundo de imaginación</div><h1>Las aventuras de Lía</h1><p>¡Elige un libro y entra en su aventura!</p></header>
+<main>
+<section id="home">
+<h2>¿Qué aventura abrimos?</h2>
+<div class="books">
+<article class="card"><div class="art">🏰🔑</div><h3>Lía y el castillo de las mil puertas</h3><p>Resuelve acertijos, encuentra la llave y ayuda a Nube.</p><button class="primary" onclick="openBook('castle')">Entrar al castillo</button></article>
+<article class="card"><div class="art">🌲✨</div><h3>Lía y el Bosque de los Susurros</h3><p>Escucha al bosque, resuelve sus pruebas y devuelve la luz.</p><button class="primary" onclick="openBook('forest')">Entrar al bosque</button></article>
+</div>
+</section>
+<section id="castle" class="hidden">
+<button class="back" onclick="goHome()">← Todos los libros</button><div class="panel"><span class="pill">LIBRO 1</span><h2>🏰 ¡Aventura en el castillo!</h2><p>Elige un reto. Cada juego funciona aquí mismo.</p>
+<div class="books">
+<article class="card"><div class="art">🧠</div><h3>El acertijo de la puerta</h3><button class="primary" onclick="startQuiz()">Jugar</button></article>
+<article class="card"><div class="art">🐢</div><h3>El laberinto de Nube</h3><button class="primary" onclick="startMaze()">Jugar</button></article>
+<article class="card"><div class="art">🗝️</div><h3>Encuentra la llave</h3><button class="primary" onclick="startKey()">Jugar</button></article>
+</div><p id="stars">⭐ Estrellas: 0</p></div>
+</section>
+<section id="forest" class="hidden">
+<button class="back" onclick="goHome()">← Todos los libros</button><div class="panel"><span class="pill">LIBRO 2</span><h2>🌲 El Bosque de los Susurros</h2><p>Los árboles han perdido su brillo. Escucha la voz del bosque y elige qué necesita para despertar.</p><div id="forestGame"><button class="primary" onclick="startForest()">Comenzar la prueba</button></div></div>
+</section>
+<section id="game" class="hidden">
+<button class="back" onclick="backToBook()">← Volver a la aventura</button><div class="panel"><span class="pill" id="gamePill">MINIJUEGO</span><h2 id="gameHeading">¡Vamos a jugar!</h2><div id="gameContent"></div><div id="feedback" class="feedback" aria-live="polite"></div><button id="again" class="primary hidden" onclick="restartGame()">Jugar otra vez</button>
+</div></section>
+</main><footer>Las aventuras de Lía · Un mundo para imaginar, descubrir y jugar</footer>
+<script>
+let stars=0, mode='', quizIndex=0, mazePos=0, keyCorrect=0, forestIndex=0, previousBook='castle';
+const quiz=[
+{q:'¿Qué necesitas para abrir una puerta cerrada?',a:['Una llave','Una nube','Un zapato'],c:0},
+{q:'¿Qué animal es Nube?',a:['Un dragón','Una tortuga','Un búho'],c:1},
+{q:'Tienes tres llaves y encuentras una más. ¿Cuántas tienes?',a:['Dos','Tres','Cuatro'],c:2}
+];
+function hideAll(){['home','castle','forest','game'].forEach(id=>document.getElementById(id).classList.add('hidden'))}
+function openBook(book){hideAll();document.getElementById(book).classList.remove('hidden')}
+function goHome(){hideAll();document.getElementById('home').classList.remove('hidden')}
+function backToBook(){openBook(previousBook)}
+function showGame(m,title){previousBook=(m==='forest'?'forest':'castle');mode=m;hideAll();document.getElementById('game').classList.remove('hidden');document.getElementById('gameHeading').textContent=title;document.getElementById('feedback').textContent='';document.getElementById('again').classList.add('hidden');}
+function star(){stars++;document.getElementById('stars').textContent='⭐ Estrellas: '+stars}
+function startQuiz(){quizIndex=0;showGame('quiz','El acertijo de la puerta');renderQuiz()}
+function renderQuiz(){let q=quiz[quizIndex];document.getElementById('gameContent').innerHTML='<p><b>Pregunta '+(quizIndex+1)+' de '+quiz.length+'</b></p><p>'+q.q+'</p><div class="answers">'+q.a.map((a,i)=>'<button onclick="answerQuiz('+i+')">'+a+'</button>').join('')+'</div>'}
+function answerQuiz(i){let q=quiz[quizIndex];if(i===q.c){document.getElementById('feedback').textContent='¡Muy bien! Has acertado. ⭐';document.getElementById('feedback').className='feedback good';star();quizIndex++;if(quizIndex<quiz.length){document.getElementById('gameContent').insertAdjacentHTML('beforeend','<button class="primary" onclick="renderQuiz()">Siguiente pregunta</button>')}else{document.getElementById('gameContent').insertAdjacentHTML('beforeend','<h3>¡Has abierto la puerta mágica!</h3>');document.getElementById('again').classList.remove('hidden')}}else{document.getElementById('feedback').textContent='Casi… prueba otra respuesta.';document.getElementById('feedback').className='feedback bad'}}
+const maze=[['🐢','⬜','🟪','⬜','⬜'],['🟪','⬜','🟪','⬜','🟪'],['⬜','⬜','⬜','⬜','⬜'],['⬜','🟪','🟪','🟪','⬜'],['⬜','⬜','⬜','🗝️','🌟']];
+function startMaze(){showGame('maze','El laberinto de Nube');mazePos=0;renderMaze()}
+function renderMaze(){let p=mazePos;let html='<p>Guía a Nube hasta la llave. Toca una casilla cercana para moverte. Las paredes moradas bloquean el camino.</p><div class="gridmaze">';maze.flat().forEach((v,i)=>{let cell=v;if(i===p)cell='🐢';else if(v==='🐢')cell='⬜';html+='<button class="'+(v==='🟪'?'wall':(i===p?'path':''))+'" '+(v==='🟪'?'disabled':'')+' onclick="moveMaze('+i+')">'+cell+'</button>'});html+='</div><p>Posición de Nube: casilla '+(p+1)+'</p>';document.getElementById('gameContent').innerHTML=html}
+function moveMaze(i){let r=Math.floor(mazePos/5),c=mazePos%5,nr=Math.floor(i/5),nc=i%5;if(Math.abs(r-nr)+Math.abs(c-nc)!==1){document.getElementById('feedback').textContent='Muévete a una casilla de al lado.';return}if(maze[nr][nc]==='🟪')return;mazePos=i;if(maze[nr][nc]==='🌟'||maze[nr][nc]==='🗝️'){document.getElementById('feedback').textContent='¡Nube encontró la salida y la llave!';document.getElementById('feedback').className='feedback good';star();document.getElementById('gameContent').innerHTML='<h3>🎉 ¡Lo conseguiste!</h3><p>Nube ha llegado hasta la llave dorada.</p>';document.getElementById('again').classList.remove('hidden');return}renderMaze()}
+function startKey(){showGame('key','Encuentra la llave');keyCorrect=Math.floor(Math.random()*3);document.getElementById('gameContent').innerHTML='<p>Una de estas llaves abre la puerta mágica. ¿Cuál eliges?</p><div class="answers">'+['🗝️ Llave de cobre','🔑 Llave de plata','✨ Llave dorada'].map((v,i)=>'<button onclick="chooseKey('+i+')">'+v+'</button>').join('')+'</div>'}
+function chooseKey(i){if(i===keyCorrect){document.getElementById('feedback').textContent='¡CLIC! La puerta se ha abierto. ¡Muy bien!';document.getElementById('feedback').className='feedback good';star();document.getElementById('gameContent').insertAdjacentHTML('beforeend','<h3>🚪 ¡Tesoro encontrado!</h3>');document.getElementById('again').classList.remove('hidden')}else{document.getElementById('feedback').textContent='Esta llave no encaja. Prueba otra.';document.getElementById('feedback').className='feedback bad'}}
+function startForest(){forestIndex=0;renderForest()}
+const forestQs=[{q:'El árbol susurra: «Tengo sed». ¿Qué necesita?',a:['Agua','Una llave','Una almohada'],c:0},{q:'Una lucecita se ha perdido entre las raíces. ¿Qué la ayudará?',a:['Apagar todas las luces','Seguir las huellas brillantes','Romper las ramas'],c:1},{q:'El bosque vuelve a brillar. ¿Qué haces ahora?',a:['Cuidar los árboles','Dejar basura','Asustar a los animales'],c:0}];
+function renderForest(){let q=forestQs[forestIndex];document.getElementById('forestGame').innerHTML='<h3>Prueba '+(forestIndex+1)+' de '+forestQs.length+'</h3><p>'+q.q+'</p><div class="answers">'+q.a.map((a,i)=>'<button onclick="forestAnswer('+i+')">'+a+'</button>').join('')+'</div><p id="forestFeedback"></p>'}
+function forestAnswer(i){let q=forestQs[forestIndex],f=document.getElementById('forestFeedback');if(i!==q.c){f.textContent='Escucha otra vez al bosque e inténtalo de nuevo.';f.className='bad';return}star();forestIndex++;if(forestIndex<forestQs.length){f.textContent='¡Correcto! El bosque te da una estrella.';f.className='good';document.getElementById('forestGame').insertAdjacentHTML('beforeend','<button class="primary" onclick="renderForest()">Siguiente prueba</button>')}else{document.getElementById('forestGame').innerHTML='<h3>✨ ¡El bosque ha recuperado su luz!</h3><p>Los árboles susurran gracias. Has completado las tres pruebas.</p><button class="primary" onclick="startForest()">Jugar otra vez</button>'}}
+function restartGame(){if(mode==='quiz')startQuiz();else if(mode==='maze')startMaze();else if(mode==='key')startKey();else startForest()}
+</script>
+</body></html>
